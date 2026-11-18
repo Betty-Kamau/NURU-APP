@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+
+Sitemap: https://nuru-app.bettykamau333.workers.dev/sitemap.xml

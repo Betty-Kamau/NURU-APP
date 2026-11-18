@@ -1,0 +1,22 @@
+// Cloudflare settings for Nuru. Keep this file at the TOP of the GitHub repo, next to index.html and worker.js.
+{
+  "name": "nuru-app",
+  "main": "worker.js",
+  "compatibility_date": "2025-11-01",
+  // the website: index.html, privacy.html, terms.html ... (files listed in .assetsignore stay private)
+  "assets": {
+    "directory": ".",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  // the database: accounts, the shared community, photos and saved data. Cloudflare creates it on the first deploy.
+  "d1_databases": [
+    { "binding": "DB", "database_name": "nuru-db" }
+  ],
+  "vars": {
+    "GOOGLE_CLIENT_ID": "258383345244-bvb0md52ne3gejd9ma830emnc0n9oel5.apps.googleusercontent.com",
+    "ADMIN_EMAILS": "bettykamau333@gmail.com, kelvinmuiga723@gmail.com"
+  },
+  "observability": { "enabled": true }
+}
