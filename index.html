@@ -3043,6 +3043,28 @@ html.web52 #drawer>.ver89{padding:4px 16px 10px}
 /* v97: the install / update cards step aside while a sheet, the menu or the tutorial is open */
 body:has(#sheet.show) #inst85,body:has(.sheet.show) #inst85,body:has(#tour88) #inst85,body:has(#un88) #inst85,
 body:has(#sheet.show) #upd92,body:has(.sheet.show) #upd92{opacity:0!important;pointer-events:none!important;transform:translateY(120%)!important}
+/* v99 */
+.np-plus{display:none!important}
+.np-dock{position:sticky;bottom:0;align-items:stretch!important;margin:10px -4px 0;padding:8px 4px calc(8px + env(safe-area-inset-bottom));background:var(--bg,#F4F3F8);pointer-events:auto!important;z-index:3}
+.dark-mode .np-dock{background:var(--bg,#0E0B1A)}
+.np-dock #npPanel.np-panel{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:6px;justify-content:flex-start;scrollbar-width:none}
+.np-dock #npPanel.np-panel::-webkit-scrollbar{display:none}
+.notepad{min-height:calc(100vh - 270px)!important;min-height:calc(100dvh - 270px)!important}
+.pt-verse,.pt-verse .tv-text,.pt-verse .tv-ref{text-align:left!important}
+.pt-verse .vb60{text-align:left}
+.kes99{font-size:12px;color:var(--muted);margin-top:2px;font-weight:600}
+.kes99.sum{margin:-2px 0 6px;text-align:right}
+.pd99-pay{font-style:normal;font-size:18px;line-height:20px}
+.vis99{margin:0 0 10px;padding:10px 12px;border-radius:12px;font-size:13px;font-weight:700}
+.vis99.ok{background:#E8F6EE;color:#17643A}.vis99.bad{background:#FFF3E0;color:#8A4B00}
+.dark-mode .vis99.ok{background:#12301F;color:#9FE3B8}.dark-mode .vis99.bad{background:#3A2A12;color:#FFC98A}
+.intl99{font-size:12.5px;color:var(--muted);text-align:center;margin:6px 0 0}
+.screen[data-screen="product"] .body{padding-bottom:calc(110px + env(safe-area-inset-bottom))!important}
+/* v99: the + buttons move up while the install / update card is showing, so they can always be tapped */
+body:has(#inst85.on) .fab-dock,body:has(#upd92.on) .fab-dock,body:has(#inst85.on) .screen.active .fab:not(.fab-dock .fab),body:has(#upd92.on) .screen.active .fab:not(.fab-dock .fab){transform:translateY(-92px);transition:transform .25s ease}
+/* v99: the install / update cards only show on the main pages, never over a form, the Bible's verse menu or a prayer */
+body[data-scr]:not([data-scr="home"]):not([data-scr="community"]):not([data-scr="shop"]):not([data-scr="notes"]):not([data-scr="topics"]) #inst85,
+body:has(#verseSheet.show) #inst85{display:none!important}
 </style>
 </head>
 <body><div id="boot64" aria-hidden="true"><div class="b64-name">Nuru</div><div class="b64-ring"></div></div><script data-boot>setTimeout(function(){var b=document.getElementById("boot64");if(b)b.remove()},12000)</script>
@@ -14132,7 +14154,7 @@ R.product = (prev => () => {
     ${o ? `<div class="pd87-save">You save ${ksh(o.save)}</div>` : ''}
     ${low && !mine && p.status === 'live' ? `<div class="pd87-hurry">🔥 Only ${s} remaining. Get yours before they are gone.</div>` : ''}
     <div class="ld-facts">${facts}</div></div>
-    <div class="pd87-trust"><span>${ic('shield')}<b>Secure</b><small>Chat on Nuru</small></span><span><i class="pd87-mp">M</i><b>M-Pesa</b><small>Pay on collection</small></span><span>${ic('check')}<b>Checked</b><small>Listing reviewed</small></span></div>`);
+    <div class="pd87-trust"><span>${ic('shield')}<b>Secure</b><small>Chat on Nuru</small></span><span><i class="pd99-pay">💳</i><b>Pay your way</b><small>Agree with the seller</small></span><span>${ic('check')}<b>Checked</b><small>Listing reviewed</small></span></div>`);
   /* About this item: short, with Read more */
   h = h.replace(/<p class="ld-desc">([\s\S]*?)<\/p>/, (m, d) => d.length > 180 ? `<p class="ld-desc pd87-clamp" id="pd87d">${d}</p><button class="pd87-more" data-act="pd87More">Read more</button>` : m);
   h = h.replace(/(<div><dt>Available<\/dt><dd>)[^<]*(<\/dd><\/div>)/, (m, a, b) => a + (out ? 'Sold out' : s == null ? 'In stock' : s + ' in stock') + b);
@@ -14154,7 +14176,7 @@ R.product = (prev => () => {
       <div class="pd87-q"><button data-act="q87" data-d="-1" aria-label="One less" ${P.q87 <= 1 ? 'disabled' : ''}>${ic('minus')}</button><span aria-live="polite">${P.q87}</span><button data-act="q87" data-d="1" aria-label="One more" ${P.q87 >= maxQ ? 'disabled' : ''}>${ic('plus')}</button></div>
       <button class="ld-btn pd87-add" data-act="add87" data-id="${p.id}" ${maxQ < 1 ? 'disabled' : ''}>${maxQ < 1 ? `All ${inC} in your cart` : `Add to cart <b>${ksh(p.price * P.q87)}</b>`}</button></div>`;
   h = h.replace(/<div class="ld-bar[^"]*">[\s\S]*<\/div>\s*$/, bar);
-  h = h.replace(/Nuru doesn’t handle payment or delivery\./, 'Pay the seller directly when you collect or receive it. Never pay before you have seen the item.');
+  h = h.replace(/Nuru doesn’t handle payment or delivery\./, 'Nuru only shows items. The seller arranges payment and delivery with you. Never pay before you know the seller or have seen the item.');
   return h;
 })(R.product);
 const _go87 = go; go = function(name, params){ if (name === 'product' && params && params.pid !== P.pid) P.q87 = 1; return _go87.apply(this, arguments); };
@@ -14193,7 +14215,7 @@ R.cart = () => {
   const groups = {}; ok.forEach(x => (groups[x.p.by] ||= []).push(x));
   const row = ({c, p}, dead) => { const o = offer87(p), s = stock87(p), room = s == null ? 99 : s;
     return `<div class="cart-item ${dead ? 'dead87' : ''}"><div class="thumb" data-act="openProduct" data-id="${p.id}">${art(p)}</div>
-      <div class="ct"><div class="nm">${esc(p.name)}</div><div class="price">${ksh(p.price)}${o ? ` <s class="old" style="display:inline">${ksh(o.was)}</s>` : ''}</div>
+      <div class="ct"><div class="nm">${esc(p.name)}</div><div class="price">${ksh(p.price)}${o ? ` <s class="old" style="display:inline">${ksh(o.was)}</s>` : ''}</div>${kesLine99(p.price)}
       ${dead ? `<div class="c87-warn">${p.by === me() ? 'Your own listing' : s === 0 || p.status === 'sold' ? 'Sold out' : 'No longer available'}</div>` : s != null && s <= lowAt87(p) ? `<div class="c87-warn">Only ${s} left</div>` : ''}
       <div class="row"><button class="link-del" data-act="rm87" data-id="${p.id}">${ic('trash')} Remove</button>
       ${dead ? '' : `<div class="qty"><button data-act="cq87" data-id="${p.id}" data-d="-1" aria-label="One less" ${c.qty <= 1 ? 'disabled' : ''}>${ic('minus')}</button><span>${c.qty}</span><button data-act="cq87" data-id="${p.id}" data-d="1" aria-label="One more" ${c.qty >= room ? 'disabled' : ''}>${ic('plus')}</button></div>`}</div></div></div>`; };
@@ -14202,9 +14224,9 @@ R.cart = () => {
     ${Object.entries(groups).map(([h, L]) => { const u = userOf(h) || {name:L[0].p.seller || h};
       return `<div class="c87-seller">${ic('bag')} From <b>${esc(u.name)}</b></div>${L.map(x => row(x)).join('')}`; }).join('')}
     ${bad.length ? `<div class="c87-seller">Not available</div>${bad.map(x => row(x, true)).join('')}` : ''}
-    ${ok.length ? `<div class="card"><div class="sum-line"><span>Items</span><b>${ksh(sub)}</b></div>
+    ${ok.length ? `<div class="card"><div class="sum-line"><span>Items</span><b>${ksh(sub)}</b></div>${kesLine99(sub, 'sum')}
       ${saved ? `<div class="sum-line" style="color:var(--ok)"><span>You save</span><b>${ksh(saved)}</b></div>` : ''}
-      <div class="sum-line" style="color:var(--muted);font-size:12px"><span>You pay the seller directly by M-Pesa or cash when you collect or receive your order. Delivery, if any, is agreed with the seller.</span></div></div>` : ''}
+      <div class="sum-line" style="color:var(--muted);font-size:12px"><span>Nuru only shows items. You and the seller agree on payment (mobile money, card, bank transfer or cash) and delivery between you. Never pay before you know the seller or have seen the item.</span></div></div>` : ''}
   </div>${ok.length ? `<div class="buy-bar"><button class="cta gold" data-act="order87">${n > 1 ? `Send orders to ${n} sellers` : 'Send order to the seller'} · ${ksh(sub)}</button></div>` : ''}`;
 };
 A.cq87 = el => { const c = inCart(el.dataset.id), p = prod(el.dataset.id); if (!c) return; const s = stock87(p);
@@ -14218,7 +14240,7 @@ A.order87 = () => {
     ${[['collect', 'Collect it', 'Meet the seller or pick it up'], ['deliver', 'Deliver to me', 'Agree the delivery cost with the seller']].map(([k, l, s]) => `<button class="radio ${P.how87 === k ? 'on' : ''}" data-act="how87" data-v="${k}"><span class="dot"></span><span class="rt">${l}<small>${s}</small></span></button>`).join('')}
     <div class="section-title" style="margin:10px 0 6px">Note to the seller (optional)</div>
     <textarea class="field" id="note87" rows="2" maxlength="300" placeholder="e.g. Size L please. I can collect on Saturday in Westlands.">${esc(P.note87 || '')}</textarea>
-    <div class="c87-pay">${ic('shield')}<span>The seller confirms your order in a chat on Nuru. Pay them directly by M-Pesa or cash when you collect or receive it. Never pay before you have seen the item.</span></div>
+    <div class="c87-pay">${ic('shield')}<span>The seller confirms your order in a chat on Nuru. Nuru only shows items: you and the seller agree on payment and delivery between you. Never pay before you know the seller or have seen the item.</span></div>
     <button class="cta gold" data-act="send87">Send order</button>`);
 };
 A.how87 = el => { P.note87 = $('#note87')?.value || ''; P.how87 = el.dataset.v; A.order87(); };
@@ -14233,7 +14255,7 @@ A.send87 = () => {
     const oid = oid87(), items = L.map(({c, p}) => ({id:p.id, name:p.name, qty:Math.min(c.qty, stock87(p) ?? c.qty), price:p.price})), total = items.reduce((a, i) => a + i.qty * i.price, 0);
     let c = S.convos.find(x => x.with === h && x.listingId === items[0].id);
     if (!c) { c = {id:'c' + uid(), kind:'market', listingId:items[0].id, with:h, msgs:[], created:Date.now(), resolved:false}; S.convos.unshift(c); lstat(items[0].id, 'chats'); }
-    const text = `🛒 New order #${oid}\n${items.map(i => `${i.qty} × ${i.name} · ${ksh(i.qty * i.price)}`).join('\n')}\nTotal: ${ksh(total)}\n${how === 'deliver' ? 'Please deliver to me.' : 'I would like to collect it.'}${note ? '\nNote: ' + note : ''}\nPlease confirm.`;
+    const text = `🛒 New order #${oid}\n${items.map(i => `${i.qty} × ${i.name} · ${ksh(i.qty * i.price)}${kesTag99(i.qty * i.price)}`).join('\n')}\nTotal: ${ksh(total)}${kesTag99(total)}\n${how === 'deliver' ? 'Please deliver to me.' : 'I would like to collect it.'}${note ? '\nNote: ' + note : ''}\nPlease confirm.`;
     c.msgs.push({id:uid(), from:me(), text, ts:Date.now(), read:false, order:{oid, items, total, how, note}});
     S.orders ||= []; S.orders.unshift({id:oid, v87:1, seller:h, cid:c.id, items:items.map(i => ({...i})), total, date:Date.now(), status:'Sent to the seller', how});
     S.cart = S.cart.filter(x => !L.some(y => y.p.id === x.id)); lastC = c; sent++;
@@ -14599,6 +14621,7 @@ A.submitListing = (prev => (...a) => {
   const l = id ? S.listings.find(x => x.id === id) : (S.listings.length > n0 ? S.listings[0] : null);
   if (!l || !['live', 'pending', 'unpaid', 'sold'].includes(l.status) || !feeNeeded88(l)) return;
   l.status = 'unpaid'; l.reason = `Pay ${ksh(fee88())} for a 14-day listing pass to show this item`; save();
+  toast('Saved, but hidden for now: pay for a 14-day listing pass so buyers can see it');
   setTimeout(() => fee88Sheet(l.id), 350);
 })(A.submitListing);
 function fee88Sheet(id){
@@ -14616,6 +14639,7 @@ function fee88Sheet(id){
     <label class="pb83-lab" for="fee88c">M-Pesa confirmation code from the SMS</label>
     <input id="fee88c" class="field-input pb83-code" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. TKL4X9ABCD">
     <button class="cta" data-act="fee88Pay">I’ve paid, show my items</button>
+    <p class="intl99">Not in Kenya, or no M-Pesa? Email <a href="mailto:bettykamau333@gmail.com?subject=Nuru%20listing%20pass">bettykamau333@gmail.com</a> and we will help you pay another way.</p>
     <button class="pb83-later" data-act="closeSheet">Later</button></div>`);
 }
 A.fee88 = el => fee88Sheet(el.dataset.id);
@@ -14661,7 +14685,7 @@ shMerge80 = (prev => function(st, items){
   return r; })(shMerge80);
 
 /* v89: show the version in the menu, so it is easy to see the phone has the newest update */
-const NURU_VERSION = '98 · 28 Nov 2026';
+const NURU_VERSION = '99 · 28 Nov 2026';
 openDrawer = (prev => function(){ const r = prev.apply(this, arguments);
   const d = $('#drawer'); if (d && !$('.ver89', d)) (($('.d-items', d) || $('.drawer-inner', d) || d)).insertAdjacentHTML('beforeend', `<div class="ver89">Nuru version ${NURU_VERSION}</div>`);
   return r; })(openDrawer);
@@ -14941,6 +14965,76 @@ go = (prev => function(name, params){
   }
   return prev.apply(this, arguments);
 })(go);
+/* =====================================================================
+   NURU v99: fixes from the first client's feedback
+   ===================================================================== */
+/* 1. The background refresh (every 12 seconds when something changed) no longer disturbs reading or writing:
+      it skips the Bible, the note editor and other forms, and it waits while someone types anywhere (also in a note). */
+const NOREP99 = new Set(['bible', 'form', 'listform', 'editprofile', 'study', 'compose', 'newpost']);
+shRepaint80 = (prev => function(){
+  const a = document.activeElement;
+  if (a && a.isContentEditable) { P.shDirty80 = true; return; }
+  if (NOREP99.has(cur())) { P.shDirty80 = true; return; }
+  return prev.apply(this, arguments);
+})(shRepaint80);
+/* 2. The Bible keeps your place: the same chapter keeps its scroll and selected verses when the screen is redrawn */
+let bibKey99 = '', bibY99 = 0, bibBusy99 = false;
+document.addEventListener('scroll', e => { if (!bibBusy99 && e.target && e.target.id === 'reader') bibY99 = e.target.scrollTop; }, true);
+AFTER.bible = (prev => function(el){
+  const k = `${S.reader.tr}|${S.reader.book}|${S.reader.ch}`, same = k === bibKey99, y = bibY99, keep = same ? new Set(vsel) : null;
+  bibBusy99 = true;
+  const r = prev ? prev.apply(this, arguments) : undefined;
+  if (!same) { bibKey99 = k; bibY99 = 0; bibBusy99 = false; return r; }
+  keep.forEach(n => vsel.add(n));
+  const until = Date.now() + 4000;
+  const restore = () => { const rd = $('#reader'); if (!rd) { bibBusy99 = false; return; }
+    if (!rd.querySelector('.chap-text')) { if (Date.now() < until) return setTimeout(restore, 60); bibBusy99 = false; return; }
+    rd.scrollTop = y; if (vsel.size) try { paintVerseSheet(); } catch (e) {}
+    setTimeout(() => { bibBusy99 = false; bibY99 = rd.scrollTop; }, 120); };
+  setTimeout(restore, 30);
+  return r;
+})(AFTER.bible);
+/* 3. Light mode is the default. Anyone who chose dark keeps it. */
+if (!S.look99) { if (!S.appearance || S.appearance === 'system') S.appearance = 'light'; S.look99 = 1; save(); try { applyLook(); } catch (e) {} }
+/* 4. Notes: no floating + inside the note. Format, Page and Colour sit in a slim bar under the note,
+      the writing area fills the screen, and tapping the empty space below the text starts typing. */
+notepadHTML = (prev => function(){ const h = prev.apply(this, arguments);
+  setTimeout(() => { if ($('#npPanel') && !P.npPanel) { P.npPanel = 'menu'; renderNpPanel(); } }, 0);
+  return h; })(notepadHTML);
+document.addEventListener('click', e => {
+  if (cur() !== 'form') return; const ed = $('#fRich'); if (!ed) return;
+  const body = e.target.closest && e.target.closest('.screen.active .form-body, .screen.active .body');
+  if (!body || e.target.closest('#fRich, button, input, textarea, select, a, label, .np-dock')) return;
+  ed.focus(); try { const r = document.createRange(); r.selectNodeContents(ed); r.collapse(false); const s = getSelection(); s.removeAllRanges(); s.addRange(r); } catch (err) {}
+});
+/* 5. Previous Daily Verses: the same action bar as Topics (like, memorize, comments, share, more) */
+R.pastverses = (prev => () => { let i = 0;
+  return prev().replace(/<div class="verse-widgets">[\s\S]*?<\/div>/g, m => { const v = PAST_VOTD[i++]; return v ? vbar60(v[0], v[2]) : m; });
+})(R.pastverses);
+/* 6. Prices: the buyer's own currency first, and the seller's price in Kenyan shillings beside it */
+const kes99 = n => 'KSh ' + Math.round(n).toLocaleString('en-KE');
+const fx99 = () => !String(ksh(1000)).startsWith('KSh');
+function kesLine99(n, cls){ return fx99() ? `<div class="kes99 ${cls || ''}">≈ ${kes99(n)} · seller’s price in Kenyan shillings</div>` : ''; }
+function kesTag99(n){ return fx99() ? ` (${kes99(n)})` : ''; }
+R.product = (prev => () => {
+  let h = prev(); const p = prod(P.pid);
+  if (!p || p.type !== 'listing') return h;
+  if (fx99()) h = h.replace(/(<div class="pd87-price">[\s\S]*?<\/div>)/, m => m + `<div class="kes99">≈ ${kes99(p.price)} · the seller’s price in Kenyan shillings</div>`)
+    .replace(/(<div><dt>Price<\/dt><dd>)([^<]*)(<\/dd><\/div>)/, (m, a, v, b) => `${a}${v} (${esc(kes99(p.price))})${b}`);
+  if (p.by === me()) {
+    const vis = p.status === 'live' ? ['ok', '👀 Everyone can see this item']
+      : p.status === 'sold' ? ['ok', '👀 Everyone can see this item (marked sold)']
+      : p.status === 'unpaid' ? ['bad', '🙈 Only you can see this item. Buy a listing pass to show it to everyone.']
+      : p.status === 'pending' ? ['bad', `🙈 Only you can see this item while it is checked${p.reason ? ': ' + p.reason : ''}`]
+      : p.status === 'rejected' ? ['bad', `🙈 Only you can see this item: ${p.reason || 'it breaks the shop rules'}`]
+      : ['bad', '🙈 Only you can see this item'];
+    h = h.replace(/(<div class="ld-status">)/, m => `<div class="vis99 ${vis[0]}">${esc(vis[1])}</div>` + m);
+  }
+  return h;
+})(R.product);
+
+show = (prev => function(){ const r = prev.apply(this, arguments); try { document.body.dataset.scr = cur(); } catch (e) {} return r; })(show);
+try { document.body.dataset.scr = cur(); } catch (e) {}
 /* ---------- boot ---------- */
 
 applyLook();

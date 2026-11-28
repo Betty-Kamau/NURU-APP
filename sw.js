@@ -1,6 +1,6 @@
 /* Nuru offline helper: always tries the internet first, and uses the last saved copy when offline.
    The server's /api is never cached. The saved Bible (cache "nuru-bible") is kept across updates. */
-const CACHE = 'nuru-v98', KEEP = ['nuru-bible'];
+const CACHE = 'nuru-v99', KEEP = ['nuru-bible'];
 self.addEventListener('install', e => { self.skipWaiting(); e.waitUntil(caches.open(CACHE).then(c => c.addAll(['/', '/manifest.webmanifest', '/icon-192.png'])).catch(() => {})); });
 self.addEventListener('activate', e => e.waitUntil((async () => { for (const k of await caches.keys()) if (k !== CACHE && !KEEP.includes(k)) await caches.delete(k); await self.clients.claim(); })()));
 self.addEventListener('fetch', e => {

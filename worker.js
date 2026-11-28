@@ -593,7 +593,7 @@ async function sync(req, env, u) {
 async function route(req, env, url, ctx) {
   const p = url.pathname.replace(/^\/api/, ''), m = req.method, ip = req.headers.get('cf-connecting-ip') || 'x';
   REQ_IP = ip;
-  if (p === '/health') return json({ok:true, version:'98', email:!!env.RESEND_API_KEY, password:true, google:!!env.GOOGLE_CLIENT_ID});
+  if (p === '/health') return json({ok:true, version:'99', email:!!env.RESEND_API_KEY, password:true, google:!!env.GOOGLE_CLIENT_ID});
   if (m === 'GET' && p.startsWith('/media/')) return media(env, decodeURIComponent(p.slice(7)));
 
   if (m === 'POST' && p === '/auth/dev' && env.DEV_LOGIN === 'local-test-only' && ['localhost', '127.0.0.1'].includes(url.hostname)) {   // for testing on a computer only; never on the live site
