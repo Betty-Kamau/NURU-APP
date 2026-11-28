@@ -118,7 +118,7 @@ function handleRule(h) {
   if (h.length < 3) return 'Use at least 3 characters';
   if (h.length > 24) return 'Use 24 characters or fewer';
   if (!/^[a-z0-9._]+$/.test(h)) return 'Use only letters, numbers, underscores (_) and full stops (.)';
-  if (!/^[a-z]/.test(h)) return 'Start your username with a letter';
+  if (!/^[a-z_]/.test(h)) return 'Start your username with a letter or _';
   if ((h.match(/[a-z]/g) || []).length < 3) return 'Use at least 3 letters, not only numbers';
   if (/\.\./.test(h) || h.endsWith('.')) return 'A full stop cannot be doubled or come last';
   if (HANDLE_RESERVED.has(h.replace(/[._\d]/g, ''))) return 'This username is reserved. Try another one';
@@ -130,6 +130,13 @@ const CH_NOUN = ['servant', 'disciple', 'pilgrim', 'lamb', 'light', 'vessel', 's
 const CH_TAG = ['psalm23', 'john316', 'prov35', 'isaiah4031', 'jer2911', 'phil413', 'rom828', 'josh19', 'matt514', 'gal522'];
 async function suggestHandles(env, base, n = 6) {
   const pick = a => a[Math.floor(Math.random() * a.length)];
+  const exact = String(base || '').trim().toLowerCase().replace(/^@/, '');
+  if (/^[a-z0-9._]{3,18}$/.test(exact) && !/\s/.test(exact)) {                 // ideas built on exactly what the person typed
+    const tries = new Set([`${exact}.${pick(CH_ADJ)}`, `${pick(CH_ADJ)}.${exact.replace(/^[._]+/, '')}`, `${exact}_${pick(CH_TAG)}`, `${exact}4christ`, `${exact}.${pick(CH_NOUN)}`, `${exact}_${Math.floor(Math.random() * 90 + 10)}`, `${exact}.ke`, `the.${exact.replace(/^[._]+/, '')}`]);
+    const free = [];
+    for (const h of tries) { if (free.length >= n) break; if (handleRule(h)) continue; if (!(await env.DB.prepare(`SELECT 1 FROM users WHERE handle = ?`).bind(h).first())) free.push(h); }
+    if (free.length >= 3) return free;
+  }
   let b = String(base || '').trim().split(/\s+/)[0].toLowerCase().normalize('NFKD').replace(/[^a-z]/g, '').slice(0, 12);
   if (b.length < 3) b = '';
   const out = new Set();
@@ -533,7 +540,7 @@ async function sync(req, env, u) {
 async function route(req, env, url, ctx) {
   const p = url.pathname.replace(/^\/api/, ''), m = req.method, ip = req.headers.get('cf-connecting-ip') || 'x';
   REQ_IP = ip;
-  if (p === '/health') return json({ok:true, version:'91', email:!!env.RESEND_API_KEY, password:true, google:!!env.GOOGLE_CLIENT_ID});
+  if (p === '/health') return json({ok:true, version:'94', email:!!env.RESEND_API_KEY, password:true, google:!!env.GOOGLE_CLIENT_ID});
   if (m === 'GET' && p.startsWith('/media/')) return media(env, decodeURIComponent(p.slice(7)));
 
   if (m === 'POST' && p === '/auth/dev' && env.DEV_LOGIN === 'local-test-only' && ['localhost', '127.0.0.1'].includes(url.hostname)) {   // for testing on a computer only; never on the live site
@@ -619,8 +626,8 @@ async function route(req, env, url, ctx) {
     const h = String(url.searchParams.get('u') || '').trim().toLowerCase().replace(/^@/, ''), base = clean(url.searchParams.get('base') || u.name, 40);
     if (!h) return json({ok:false, message:'', suggestions:await suggestHandles(env, base)});
     if (h === u.handle) return json({ok:true, mine:true, message:'This is your username'});
-    const why = handleRule(h); if (why) return json({ok:false, message:why, suggestions:await suggestHandles(env, base)});
-    if (await env.DB.prepare(`SELECT 1 FROM users WHERE handle = ?`).bind(h).first()) return json({ok:false, taken:true, message:'This username is already taken. Try another one', suggestions:await suggestHandles(env, base)});
+    const why = handleRule(h); if (why) return json({ok:false, message:why});
+    if (await env.DB.prepare(`SELECT 1 FROM users WHERE handle = ?`).bind(h).first()) return json({ok:false, taken:true, message:`@${h} is already taken. Try another one`, suggestions:await suggestHandles(env, h)});
     return json({ok:true, message:'Available'});
   }
   if (m === 'GET' && p === '/me') return json({user:userOut(u), admin:!!u.role, role:u.role, unlocked:u.admin});

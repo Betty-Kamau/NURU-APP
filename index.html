@@ -3011,6 +3011,22 @@ html.minor67 [data-act="selPost"],html.minor67 [data-act="viPost"],html.minor67 
 .inst91-qr svg{width:100%;height:100%;display:block}
 .inst91-cap{margin:0;text-align:center;font-size:13px;line-height:1.45}
 .inst91-close{margin-top:2px}
+/* v92 menu install / update */
+.inst92{display:flex;align-items:center;gap:10px;width:100%;margin:8px 0 2px;padding:10px 12px;border-radius:14px;border:1.5px solid var(--gold,#E0A23D);background:var(--gold-soft,#FFF4DC);color:var(--ink);text-align:left;cursor:pointer}
+.dark-mode .inst92{background:#2D2414}
+.inst92 img{width:34px;height:34px;border-radius:9px}
+.inst92>span:nth-child(2){flex:1;min-width:0;display:flex;flex-direction:column;font-size:13.5px}.inst92 small{font-size:11.5px;color:var(--muted)}
+.upd92 .inst85-go{white-space:nowrap}
+/* v93: the install / update row is a small row like Dark mode; the laptop menu scrolls as one */
+.drawer-foot .inst92,.dark-mode .drawer-foot .inst92{width:100%;margin-top:6px;gap:10px;color:inherit;text-align:left;cursor:pointer;font-family:inherit;background:transparent;border:0;border-radius:0;padding:6px 4px}
+.inst92-ic{display:inline-flex;width:18px;justify-content:center;color:var(--ink);font-size:14px;line-height:1}
+.dark-mode .inst92-ic{color:#fff}
+.inst92-ic svg{width:16px;height:16px}
+.inst92-t{flex:1}
+.inst92-t small{font-weight:500;color:var(--muted);font-size:12px;margin-left:4px}
+.inst92-go{background:var(--gold,#E0A23D);color:#12004E;font-weight:800;font-size:12px;line-height:1;padding:4px 12px;border-radius:999px}
+html.web52 #drawer .drawer-list{flex:none;overflow:visible}
+html.web52 #drawer{display:flex;flex-direction:column}
 </style>
 </head>
 <body><div id="boot64" aria-hidden="true"><div class="b64-name">Nuru</div><div class="b64-ring"></div></div><script data-boot>setTimeout(function(){var b=document.getElementById("boot64");if(b)b.remove()},12000)</script>
@@ -13759,7 +13775,7 @@ function instWhich85(){
 function instAllowed85(){
   if (inApp85()) return false;
   let v = ''; try { v = localStorage.getItem('nuru_inst85') || ''; } catch (e) {}
-  if (v === 'installed') return false;
+  if (v === 'installed' && !isPhone91()) return false;   // v93: on a phone's browser, offer it again
   if (v.startsWith('later:') && Date.now() < +v.slice(6)) return false;
   try { if (sessionStorage.getItem('nuru_inst85s')) return false; } catch (e) {}
   return true;
@@ -14310,7 +14326,7 @@ const unRule88 = h => {
   if (h.length < 3) return 'Use at least 3 characters';
   if (h.length > 24) return 'Use 24 characters or fewer';
   if (!/^[a-z0-9._]+$/.test(h)) return 'Use only letters, numbers, underscores (_) and full stops (.)';
-  if (!/^[a-z]/.test(h)) return 'Start your username with a letter';
+  if (!/^[a-z_]/.test(h)) return 'Start your username with a letter or _';
   if ((h.match(/[a-z]/g) || []).length < 3) return 'Use at least 3 letters, not only numbers';
   if (/\.\./.test(h) || h.endsWith('.')) return 'A full stop cannot be doubled or come last';
   return '';
@@ -14321,15 +14337,16 @@ function unCheck88(inp, msg, sug, btn, onSug){
   const v = unClean88(inp.value); if (inp.value !== v) inp.value = v;
   clearTimeout(unTimer88); const my = ++unSeq88;
   const set = (t, k) => { msg.textContent = t; msg.className = 'un88-msg ' + (k || ''); if (btn) btn.disabled = k !== 'ok'; };
+  if (!v) return set('', '');
   if (v === S.user.handle) return set('✓ This is your username', 'ok');
   const why = unRule88(v); if (why) return set(why, 'bad');
   set('Checking…', '');
   unTimer88 = setTimeout(async () => {
     try {
-      const r = await cfFetch('/handle?u=' + encodeURIComponent(v) + '&base=' + encodeURIComponent(S.user.name || ''));
+      const r = await cfFetch('/handle?u=' + encodeURIComponent(v) + '&base=' + encodeURIComponent(v));
       const d = await r.json(); if (my !== unSeq88) return;
       if (!r.ok) return set(r.status === 429 ? 'Slow down a little, then try again' : 'Could not check right now', 'bad');
-      set(d.ok ? `✓ @${v} is available` : (d.message || 'This username is already taken. Try another one'), d.ok ? 'ok' : 'bad');
+      set(d.ok ? `✓ @${v} is available` : (d.message || `@${v} is already taken. Try another one`), d.ok ? 'ok' : 'bad');
       if (d.suggestions?.length && sug) unSugs88(sug, d.suggestions, onSug);
     } catch (e) { if (my === unSeq88) set('No connection. Try again when you are online', 'bad'); }
   }, 380);
@@ -14368,21 +14385,21 @@ function unShow88(){
   document.body.insertAdjacentHTML('beforeend', `<div id="un88" role="dialog" aria-modal="true" aria-labelledby="un88t"><div class="un88-card">
     <div class="un88-ic">🕊️</div>
     <h2 id="un88t">Create your username</h2>
-    <p class="un88-sub">Your username is how people find you and tag you on Nuru. It must be unique.</p>
+    <p class="un88-sub">Search for the username you want. We tell you straight away if it is free or already taken. It must be unique.</p>
     <label class="un88-lab" for="un88u">Username</label>
-    <div class="un88-in"><span>@</span><input id="un88u" value="${esc(h)}" autocapitalize="none" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="24" inputmode="email"></div>
+    <div class="un88-in"><span>@</span><input id="un88u" value="" placeholder="type a username to search" autocapitalize="none" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="24" inputmode="email"></div>
     <div id="un88msg" class="un88-msg" aria-live="polite"></div>
-    <div class="un88-sug-h">✨ Christian usernames you can take</div>
+    <div class="un88-sug-h" id="un88sugh">✨ Ideas you can tap</div>
     <div id="un88sug" class="un88-sug"><span class="un88-load">Finding ideas…</span></div>
     <label class="un88-lab" for="un88n">Nickname</label>
     <input id="un88n" class="un88-field" value="${esc(n)}" maxlength="30" autocomplete="nickname">
     <small class="un88-hint">The name people see on your profile and posts. It does not have to be unique.</small>
-    <button class="cta un88-go" id="un88go" data-act="un88Save">Continue</button>
+    <button class="cta un88-go" id="un88go" data-act="un88Save" disabled>Continue</button>
     ${h ? `<button class="un88-keep" data-act="un88Keep">Keep @${esc(h)}</button>` : ''}
   </div></div>`);
   const inp = $('#un88u'), pick = v => { inp.value = v; unCheck88(inp, $('#un88msg'), $('#un88sug'), $('#un88go'), pick); };
   inp.addEventListener('input', () => unCheck88(inp, $('#un88msg'), $('#un88sug'), $('#un88go'), pick));
-  unCheck88(inp, $('#un88msg'), null, $('#un88go'), pick); unLoadSugs88($('#un88sug'), pick);
+  unLoadSugs88($('#un88sug'), pick); setTimeout(() => inp.focus(), 300);
 }
 A.un88Save = async () => {
   const handle = unClean88($('#un88u').value), name = ($('#un88n').value || '').trim().replace(/\s+/g, ' ');
@@ -14599,7 +14616,7 @@ shMerge80 = (prev => function(st, items){
   return r; })(shMerge80);
 
 /* v89: show the version in the menu, so it is easy to see the phone has the newest update */
-const NURU_VERSION = '91 · 28 Nov 2026';
+const NURU_VERSION = '94 · 28 Nov 2026';
 openDrawer = (prev => function(){ const r = prev.apply(this, arguments);
   const d = $('#drawer'); if (d && !$('.ver89', d)) (($('.d-items', d) || $('.drawer-inner', d) || d)).insertAdjacentHTML('beforeend', `<div class="ver89">Nuru version ${NURU_VERSION}</div>`);
   return r; })(openDrawer);
@@ -14698,6 +14715,86 @@ if (/[?&]install=1/.test(location.search) && !inApp85()) {
   try { history.replaceState(history.state, '', location.pathname); } catch (e) {}
   setTimeout(() => { if (!instInstalled91()) A.inst91(); }, 2500);
 }
+/* ---------- v92: the menu in the order Betty asked for ----------
+   Grow → Gather → Shop → Activity → Account (switch profile, my profile, profile settings) → settings & help → Log out last.
+   Next to Dark mode: Install the app (in a browser) or Update Nuru (in the installed app). */
+function drawerOrder92(){
+  const list = $('#drawer .drawer-list'); if (!list) return;
+  const segs = [[]]; [...list.children].forEach(c => { if (c.classList.contains('d-sep')) segs.push([]); else segs[segs.length - 1].push(c); });
+  const label = s => s.find(c => c.classList.contains('d-group'))?.textContent.trim() || '';
+  const by = {}; let account = null, misc = [];
+  segs.forEach(s => { if (!s.length) return; const l = label(s);
+    if (l) by[l] = s; else if (s.some(c => c.dataset.act === 'profiles' || c.dataset.dgo === 'uprofile')) account = s; else misc = misc.concat(s); });
+  const logout = misc.find(c => c.dataset.act === 'logout'); misc = misc.filter(c => c !== logout);
+  if (account && !account.some(c => c.classList.contains('d-group'))) { const g = document.createElement('div'); g.className = 'd-group'; g.textContent = 'Account'; account.unshift(g); }
+  const order = [by.Grow, by.Gather, by.Shop, by.Activity, account, misc, logout ? [logout] : null].filter(s => s && s.length);
+  Object.keys(by).filter(k => !['Grow', 'Gather', 'Shop', 'Activity'].includes(k)).forEach(k => order.splice(order.length - 2, 0, by[k]));
+  list.innerHTML = '';
+  order.forEach((s, i) => { if (i) { const sep = document.createElement('div'); sep.className = 'd-sep'; list.appendChild(sep); } s.forEach(c => list.appendChild(c)); });
+}
+const verNum92 = v => parseInt(String(v).match(/\d+/)?.[0] || '0', 10);
+function instCard92(){
+  const d = $('#drawer'); if (!d) return;
+  d.querySelectorAll('.inst91-card, .inst92').forEach(x => x.remove());
+  const app = inApp85();
+  const html = app
+    ? `<button class="toggle-row inst92" data-act="upd92" aria-label="Update Nuru, you have version ${verNum92(NURU_VERSION)}"><span class="inst92-ic">⟳</span><span class="inst92-t">Update Nuru <small>v${verNum92(NURU_VERSION)}</small></span><span class="inst92-go">Update</span></button>`
+    : `<button class="toggle-row inst92" data-act="inst91" aria-label="Install the Nuru app"><span class="inst92-ic">${ic('download') || '⬇'}</span><span class="inst92-t">Install the app</span><span class="inst92-go">Install</span></button>`;
+  const row = $('.drawer-foot .toggle-row', d);
+  row ? row.insertAdjacentHTML('afterend', html) : (d.querySelector('.drawer-foot') || d).insertAdjacentHTML('beforeend', html);
+}
+openDrawer = (prev => function(){ const r = prev.apply(this, arguments); try { drawerOrder92(); instCard92(); } catch (e) {} return r; })(openDrawer);
+
+/* ---------- v92: updates ----------
+   The app checks the website for a newer version when it opens and every 30 minutes. If there is one,
+   a bar slides up: "A new version of Nuru is ready · Update". Update reloads with the newest files. */
+async function latest92(){ try { const r = await fetch('/version.txt?t=' + Date.now(), {cache:'no-store'}); if (!r.ok) return 0; return verNum92(await r.text()); } catch (e) { return 0; } }
+async function updateNow92(){
+  toast('Updating Nuru…');
+  try { const reg = await navigator.serviceWorker?.getRegistration(); await reg?.update(); } catch (e) {}
+  try { for (const k of await caches.keys()) await caches.delete(k); } catch (e) {}
+  try { save(); } catch (e) {}
+  location.reload();
+}
+A.upd92 = async () => {
+  if ($('#drawer.show')) closeDrawer();
+  const v = await latest92(), mine = verNum92(NURU_VERSION);
+  if (v > mine) return updateNow92();
+  toast(v ? `You have the newest version (${mine}) 🙏` : 'Could not check right now. Try again when you are online');
+};
+A.updBar92 = () => updateNow92();
+A.updLater92 = () => { $('#upd92')?.remove(); };
+async function updCheck92(){
+  if ($('#upd92')) return; const v = await latest92(), mine = verNum92(NURU_VERSION);
+  if (!(v > mine)) return;
+  document.body.insertAdjacentHTML('beforeend', `<div id="upd92" class="inst85 upd92" role="dialog" aria-label="A new version of Nuru is ready">
+    <img src="/icon-192.png" alt="" class="inst85-ic"><div class="inst85-t"><b>A new version of Nuru is ready</b><small>Version ${v} · tap Update to get it</small></div>
+    <button class="inst85-go" data-act="updBar92">Update</button><button class="inst85-x" data-act="updLater92" aria-label="Later">✕</button></div>`);
+  requestAnimationFrame(() => $('#upd92')?.classList.add('on'));
+}
+setTimeout(updCheck92, 6000); setInterval(updCheck92, 30 * 6e4);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') updCheck92(); });
+
+/* ---------- v92: the install card that slides up ----------
+   It keeps waiting while the username screen and the tutorial are open (it used to give up after a minute),
+   it also shows on laptops (Install opens the QR code), and it shows again if the app was removed from the phone. */
+addEventListener('beforeinstallprompt', () => { try { if (localStorage.getItem('nuru_inst85') === 'installed') localStorage.removeItem('nuru_inst85'); } catch (e) {} });
+instTry85 = function(){
+  if (!S.auth || $('#inst85') || !instAllowed85()) return;
+  const busy = $('#login, #onboard, #terms65, #age67, #bday82, #cfcode75, .sheet.show, #sheet.show, #un88, #tour88, #upd92') || (!isWeb52() && $('#drawer.show')) || (!S.tour89 && !S.tour88);
+  if (busy) { if (++instTries85 < 150) setTimeout(instTry85, 4000); return; }
+  try { sessionStorage.setItem('nuru_inst85s', '1'); } catch (e) {}
+  const w = instWhich85(), play = w === 'play', phone = isPhone91();
+  document.body.insertAdjacentHTML('beforeend', `<div id="inst85" class="inst85" role="dialog" aria-label="Install the Nuru app">
+    <img src="/icon-192.png" alt="" class="inst85-ic">
+    <div class="inst85-t"><b>${play ? 'Get Nuru on Google Play' : phone || w ? 'Install the Nuru app' : 'Get Nuru on your phone'}</b><small>${play ? 'Free · opens faster and sends prayer reminders' : phone || w ? 'Free · opens from your home screen, even with weak internet' : 'Free · scan a QR code with your phone'}</small></div>
+    <button class="inst85-go" data-act="inst85">${play ? 'Get it' : 'Install'}</button>
+    <button class="inst85-x" data-act="instLater85" aria-label="Not now, keep using the website">✕</button></div>`);
+  requestAnimationFrame(() => $('#inst85')?.classList.add('on'));
+};
+A.inst85 = (prev => async function(){ if (!instWhich85() && !isPhone91()) { $('#inst85')?.remove(); return A.inst91(); } return prev.apply(this, arguments); })(A.inst85);
+A.instLater85 = () => { try { localStorage.setItem('nuru_inst85', 'later:' + (Date.now() + 864e5)); } catch (e) {} const c = $('#inst85'); if (c) { c.classList.remove('on'); setTimeout(() => c.remove(), 300); } };
+tourEnd88 = (prev => function(){ const r = prev.apply(this, arguments); instTries85 = 0; setTimeout(instTry85, 3000); return r; })(tourEnd88);
 /* ---------- boot ---------- */
 
 applyLook();
