@@ -13,13 +13,16 @@ const OWNER_FIELD = {post:'by', listing:'by', event:'by', group:'owner', gmsg:'b
 const SESSION_DAYS = 60;
 
 export default {
+  async scheduled(event, env, ctx) { ctx.waitUntil((async () => { await schema(env); await env.DB.prepare(`INSERT OR REPLACE INTO meta (k, v) VALUES ('sweep', ?)`).bind(now()).run(); await sweepAll(env); })()); },
   async fetch(req, env, ctx) {
     const url = new URL(req.url);
+    if (url.pathname === '/manifest.webmanifest') return manifest(req, env);
     if (!url.pathname.startsWith('/api/')) return env.ASSETS.fetch(req);
     if (req.method === 'OPTIONS') return new Response(null, {status:204, headers:cors(req)});
     try {
       if (!env.DB) return json({error:'not_configured'}, 503, req);
       await schema(env);
+      if (ctx && ctx.waitUntil) ctx.waitUntil(maybeSweep(env).catch(() => {}));
       const res = await route(req, env, url, ctx);
       for (const [k, v] of Object.entries(cors(req))) res.headers.set(k, v);
       return res;
@@ -31,6 +34,16 @@ export default {
   }
 };
 
+/* Samsung Internet puts a white box around a "maskable" icon on the opening screen. For Samsung Internet only,
+   send the manifest without it: the opening screen then shows the logo on the same dark blue, as one piece. */
+async function manifest(req, env) {
+  const res = await env.ASSETS.fetch(req), ua = req.headers.get('user-agent') || '';
+  if (!/SamsungBrowser/i.test(ua) || !res.ok) return res;
+  try {
+    const m = await res.json(); m.icons = (m.icons || []).filter(i => !/maskable/.test(i.purpose || ''));
+    return new Response(JSON.stringify(m), {headers:{'content-type':'application/manifest+json', 'cache-control':'no-cache', 'vary':'user-agent'}});
+  } catch (e) { return env.ASSETS.fetch(req); }
+}
 class Http { constructor(status, body) { this.status = status; this.body = typeof body === 'string' ? {error:body} : body; } }
 const fail = (status, error) => { throw new Http(status, error); };
 function cors(req) {
@@ -359,14 +372,53 @@ const LISTING_HOLD = [
   [/https?:\/\/|www\.|\.(com|net|org|co\.ke|ly)\b/i, 'Links in a listing are checked by a person first'],
   [/\b(deposit first|send (money|cash) first|pay before (viewing|delivery)|advance payment)\b/i, 'Asking for money before delivery is checked by a person first'],
 ];
-/* first listing free; each extra one needs its own M-Pesa listing fee (or an active seller plan) */
+/* listing fees: a seller's first listing is free for its first 14 days. After that, a listing pass ($0.5, about KSh 65)
+   lets them list as many items as they like for 14 days. Passes paid back to back add up. Older per-item fees still count. */
+const PASS_DAYS = 14, PASS_MS = PASS_DAYS * 864e5, PASS_MIN_KES = 50;
+async function passEnd(env, h) {
+  const rows = (await env.DB.prepare(`SELECT created FROM items WHERE col = 'pay' AND owner = ? AND deleted = 0 AND COALESCE(json_extract(data, '$.status'), 'pending') <> 'rejected'
+    AND json_extract(data, '$.plan.kind') = 'pass14' AND COALESCE(json_extract(data, '$.amount'), 0) >= ? ORDER BY created ASC`).bind(h, PASS_MIN_KES).all()).results;
+  let end = 0; for (const r of rows) end = Math.max(r.created, end) + PASS_MS;
+  return end;
+}
 async function listingPaid(env, h, id) {
-  const first = await env.DB.prepare(`SELECT id FROM items WHERE col = 'listing' AND owner = ? ORDER BY created ASC, rowid ASC LIMIT 1`).bind(h).first();
-  if (!first || first.id === id) return true;
+  const first = await env.DB.prepare(`SELECT id, created FROM items WHERE col = 'listing' AND owner = ? ORDER BY created ASC, rowid ASC LIMIT 1`).bind(h).first();
+  if (!first || (first.id === id && now() < first.created + PASS_MS)) return true;          // the first listing: free for 14 days
+  if (now() < await passEnd(env, h)) return true;                                           // an active listing pass
   const q = `SELECT 1 FROM items WHERE col = 'pay' AND owner = ? AND deleted = 0 AND COALESCE(json_extract(data, '$.status'), 'pending') <> 'rejected'`;
-  if (await env.DB.prepare(q + ` AND json_extract(data, '$.plan.listingId') = ? AND COALESCE(json_extract(data, '$.amount'), 0) >= 100`).bind(h, id).first()) return true;
   if (await env.DB.prepare(q + ` AND json_extract(data, '$.plan.kind') = 'tier' AND created > ?`).bind(h, now() - 30 * 864e5).first()) return true;
+  if (await env.DB.prepare(q + ` AND json_extract(data, '$.plan.kind') = 'extra_listing' AND json_extract(data, '$.plan.listingId') = ? AND created > ?`).bind(h, id, now() - PASS_MS).first()) return true;
   return false;
+}
+const FEE_REASON = 'Your free listing time is over. Pay KSh 65 to list as many items as you like for 14 days';
+/* put a seller's listings in line with what they have paid: live when covered, hidden (unpaid) when not */
+async function sweepSeller(env, h) {
+  if (await isAdminHandle(env, h)) return;
+  const rows = (await env.DB.prepare(`SELECT id, owner, data, created FROM items WHERE col = 'listing' AND owner = ? AND deleted = 0`).bind(h).all()).results;
+  for (const r of rows) {
+    let d; try { d = JSON.parse(r.data); } catch (e) { continue; }
+    const paid = await listingPaid(env, h, r.id);
+    if (!paid && ['live', 'pending'].includes(d.status)) { d.status = 'unpaid'; d.reason = FEE_REASON; await writeItem(env, 'listing', r.id, r.owner, d, r.created); }
+    else if (paid && d.status === 'unpaid') { const ld = {...d, status:'live'}; await reviewListing(env, ld, d); if (ld.status === 'live' || ld.status === 'pending') { delete ld.autoNote; await writeItem(env, 'listing', r.id, r.owner, ld, r.created); } }
+  }
+}
+async function isAdminHandle(env, h) {
+  const u = await env.DB.prepare(`SELECT email FROM users WHERE handle = ?`).bind(h).first(); if (!u) return false;
+  const owners = String(env.ADMIN_EMAILS || '').toLowerCase().split(/[,\s]+/).filter(Boolean);
+  if (owners.includes(String(u.email).toLowerCase())) return true;
+  try { return !!(await env.DB.prepare(`SELECT 1 FROM admins WHERE email = ?`).bind(String(u.email).toLowerCase()).first()); } catch (e) { return false; }
+}
+/* the same check also runs, at most once an hour, when someone uses the app (in case the hourly timer is off) */
+async function maybeSweep(env) {
+  const t = now();
+  await env.DB.prepare(`INSERT OR IGNORE INTO meta (k, v) VALUES ('sweep', 0)`).run();
+  const r = await env.DB.prepare(`UPDATE meta SET v = ? WHERE k = 'sweep' AND v < ?`).bind(t, t - 3600e3).run();
+  if (r.meta && r.meta.changes) await sweepAll(env);
+}
+/* every hour: hide the listings of sellers whose free time or pass has ended */
+async function sweepAll(env) {
+  const sellers = (await env.DB.prepare(`SELECT DISTINCT owner FROM items WHERE col = 'listing' AND deleted = 0 AND json_extract(data, '$.status') IN ('live', 'pending', 'unpaid')`).all()).results;
+  for (const r of sellers) { try { await sweepSeller(env, r.owner); } catch (e) {} }
 }
 async function reviewListing(env, d, was) {
   const st = String(d.status || 'pending');
@@ -423,7 +475,7 @@ async function put(env, u, {col, id, data}) {
   if (col === 'event' && paidOrSupport(d) && (old?.owner || h) === h && (u.under13 || (ageOf(u.dob) ?? 0) < 18)) fail(422, 'adults_only');
   if (col === 'listing' && !u.admin) {                                    // checked automatically, like TikTok
     await reviewListing(env, d, live ? old.d : null);
-    if (['live', 'pending', 'unpaid'].includes(d.status) && !(await listingPaid(env, live ? old.owner : h, id))) { d.status = 'unpaid'; d.reason = 'Your first listing was free. Pay the listing fee to publish this one'; }
+    if (!u.role && ['live', 'pending', 'unpaid'].includes(d.status) && !(await listingPaid(env, live ? old.owner : h, id))) { d.status = 'unpaid'; d.reason = FEE_REASON; }
   }
   if (col === 'pay') {                                                  // only admins confirm or reject; each M-Pesa code counts once
     if (!u.admin) d.status = live ? old.d.status : 'pending';
@@ -438,7 +490,8 @@ async function put(env, u, {col, id, data}) {
     else await audit(env, u.actor, 'admin_edit', `${col} ${id} by @${old.owner}`, Object.keys(d).filter(k => JSON.stringify(d[k]) !== JSON.stringify(old.d[k])).join(', '));
   }
   await writeItem(env, col, id, live ? old.owner : h, d, old?.created);
-  if (col === 'pay' && d.plan?.listingId) {
+  if (col === 'pay' && d.plan?.kind === 'pass14') await sweepSeller(env, live ? old.owner : h);
+  else if (col === 'pay' && d.plan?.listingId) {
     const L = await getItem(env, 'listing', String(d.plan.listingId));
     if (L && !L.deleted && L.d && L.owner === (live ? old.owner : h)) {
       if (d.status === 'rejected' && ['live', 'pending', 'sold'].includes(L.d.status)) { L.d.status = 'unpaid'; L.d.reason = 'We could not find your M-Pesa payment for this listing'; await writeItem(env, 'listing', L.id || String(d.plan.listingId), L.owner, L.d, L.created); }
@@ -540,7 +593,7 @@ async function sync(req, env, u) {
 async function route(req, env, url, ctx) {
   const p = url.pathname.replace(/^\/api/, ''), m = req.method, ip = req.headers.get('cf-connecting-ip') || 'x';
   REQ_IP = ip;
-  if (p === '/health') return json({ok:true, version:'94', email:!!env.RESEND_API_KEY, password:true, google:!!env.GOOGLE_CLIENT_ID});
+  if (p === '/health') return json({ok:true, version:'98', email:!!env.RESEND_API_KEY, password:true, google:!!env.GOOGLE_CLIENT_ID});
   if (m === 'GET' && p.startsWith('/media/')) return media(env, decodeURIComponent(p.slice(7)));
 
   if (m === 'POST' && p === '/auth/dev' && env.DEV_LOGIN === 'local-test-only' && ['localhost', '127.0.0.1'].includes(url.hostname)) {   // for testing on a computer only; never on the live site

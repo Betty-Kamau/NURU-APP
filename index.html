@@ -3025,8 +3025,24 @@ html.minor67 [data-act="selPost"],html.minor67 [data-act="viPost"],html.minor67 
 .inst92-t{flex:1}
 .inst92-t small{font-weight:500;color:var(--muted);font-size:12px;margin-left:4px}
 .inst92-go{background:var(--gold,#E0A23D);color:#12004E;font-weight:800;font-size:12px;line-height:1;padding:4px 12px;border-radius:999px}
-html.web52 #drawer .drawer-list{flex:none;overflow:visible}
-html.web52 #drawer{display:flex;flex-direction:column}
+/* v95: laptop menu: brand + profile stay at the top, Dark mode + Install stay at the bottom, only the list in between scrolls */
+html.web52 #drawer{display:flex;flex-direction:column;overflow:hidden!important;height:100vh;height:100dvh;position:sticky;top:0}
+html.web52 #drawer>*{flex:0 0 auto}
+html.web52 #drawer>.drawer-list{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 14px,#000 calc(100% - 22px),transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 14px,#000 calc(100% - 22px),transparent 100%)}
+html.web52 #drawer>.drawer-foot{padding-top:10px;padding-bottom:6px}
+html.web52 #drawer>.ver89{padding:4px 16px 10px}
+@media (max-height:760px){html.web52 #drawer .drawer-verse{display:none}}
+.pass97{display:flex;align-items:center;gap:10px;padding:12px;margin:0 0 10px;border-radius:14px;background:var(--gold-soft,#FFF4DC);font-size:18px}
+.pass97.ok{background:var(--card-2)}
+.pass97 div{flex:1;display:flex;flex-direction:column;font-size:13px}.pass97 small{font-size:12px;opacity:.8;line-height:1.4}
+.pass97 .cta,.pass97 .outline-btn{width:auto;margin:0;padding:8px 12px;font-size:12.5px;white-space:nowrap}
+.dark-mode .pass97{background:#2D2414}.dark-mode .pass97.ok{background:var(--card-2)}
+.fee88-ban.ok{background:var(--card-2)}
+.kjv98{color:var(--ok);font-weight:700}
+/* v97: the install / update cards step aside while a sheet, the menu or the tutorial is open */
+body:has(#sheet.show) #inst85,body:has(.sheet.show) #inst85,body:has(#tour88) #inst85,body:has(#un88) #inst85,
+body:has(#sheet.show) #upd92,body:has(.sheet.show) #upd92{opacity:0!important;pointer-events:none!important;transform:translateY(120%)!important}
 </style>
 </head>
 <body><div id="boot64" aria-hidden="true"><div class="b64-name">Nuru</div><div class="b64-ring"></div></div><script data-boot>setTimeout(function(){var b=document.getElementById("boot64");if(b)b.remove()},12000)</script>
@@ -9546,7 +9562,7 @@ if (!S.lang) S.lang = 'en';                                         // English u
    1. SHOP — open to everything legal and decent
    ===================================================================== */
 /* plans: Community (first listing free, then US$0.99 an item) · Seller US$9.99 · Shop US$29.99 */
-{ const T = {starter:{name:'Community', usd:0, included:1, extra_usd:0.99, best:'For people listing an item now and then. Your first listing is free.'},
+{ const T = {starter:{name:'Community', usd:0, included:1, extra_usd:0.99, best:'For people listing an item now and then. Your first listing is free for 14 days.'},
              growth:{name:'Seller', usd:9.99, included:30, extra_usd:0.25, best:'For regular sellers and small businesses.'},
              enterprise:{name:'Shop', usd:29.99, included:null, extra_usd:0, best:'For stores, wholesalers and big catalogues.'}};
   if (!S.mod.pricing?.v49) CONFIG.SELLER_TIERS.forEach(t => Object.assign(t, T[t.id] || {})); }
@@ -9678,10 +9694,10 @@ R.shop = () => {
     ${browsing ? `
     <div class="promo">
       <div class="promo-slide" style="background:linear-gradient(120deg,var(--violet-deep),var(--violet))"><h3>Buy and sell anything near you</h3><p>Phones, furniture, fashion, farm produce, services — and Christian books</p><button class="pbtn" data-act="shopNear">Near me</button><span class="promo-e">🛍️</span></div>
-      <div class="promo-slide" style="background:linear-gradient(120deg,#183B27,#2E6043)"><h3>Your first listing is free</h3><p>Then ${esc(loc$(tierOf('starter').extra_usd))} an item, or choose a plan</p><button class="pbtn" data-go="sell">Start selling</button><span class="promo-e">🏷️</span></div>
+      <div class="promo-slide" style="background:linear-gradient(120deg,#183B27,#2E6043)"><h3>Your first listing is free</h3><p>Then ${esc(loc$(tierOf('starter').extra_usd))} for 14 days of listing, or choose a plan</p><button class="pbtn" data-go="sell">Start selling</button><span class="promo-e">🏷️</span></div>
       <div class="promo-slide" style="background:linear-gradient(120deg,#9E3B5A,#E4667C)"><h3>Bibles & Christian books</h3><p>Study Bibles, devotionals and children’s Bibles</p><button class="pbtn" data-act="shopCat" data-c="bibles">Shop Bibles</button><span class="promo-e">📖</span></div>
     </div>
-    <button class="sell-banner" data-go="sell"><span class="sb-ic">${ic('tag')}</span><span><b>Sell anything on Nuru</b>Your first listing is free · then ${esc(loc$(tierOf('starter').extra_usd))} an item</span>${ic('right')}</button>
+    <button class="sell-banner" data-go="sell"><span class="sb-ic">${ic('tag')}</span><span><b>Sell anything on Nuru</b>Your first listing is free · then ${esc(loc$(tierOf('starter').extra_usd))} for 14 days of listing</span>${ic('right')}</button>
     ${saved.length ? `<div class="sec-head"><h3>Saved</h3><button data-go="saved">See all</button></div>${rowCards(saved.slice(0, 8))}` : ''}
     ${seen.length ? `<div class="sec-head"><h3>Recently viewed</h3></div>${rowCards(seen.slice(0, 8))}` : ''}
     ${[['community','From the community'], ['seller','From sellers'], ['shop','From shops']].map(([k, t]) => { const L = byLvl(k); return L.length ? `<div class="sec-head"><h3>${t}</h3><button data-act="shopSrc" data-s="${k}">See all</button></div>${rowCards(L.slice(0, 8))}` : ''; }).join('')}` : ''}
@@ -14499,7 +14515,7 @@ const TOUR88 = [
   {sel:'#navbar [data-go="topics"]', t:'Topics', b:'Verses for what you are going through: fear, hope, wisdom, healing and more.'},
   {sel:'#navbar [data-go="notes"]', t:'Notes', b:'Write notes, prayers and thanksgiving. They are saved to your account.'},
   {sel:'#navbar [data-go="community"]', t:'Community', b:'Share posts, follow people, join groups and find events near you.'},
-  {sel:'#navbar [data-go="shop"]', t:'Shop', b:'Buy and sell Christian items. Your first listing is free.'},
+  {sel:'#navbar [data-go="shop"]', t:'Shop', b:'Buy and sell Christian items. Your first listing is free for 14 days.'},
   {sel:'.screen.active .header [data-act="drawer"]', t:'Menu', b:'Your profile, orders, payments, settings, and this tour again.'},
   {t:'You are all set 🙏', b:'May God bless your time on Nuru. You can replay this tour any time from the menu.'}
 ];
@@ -14539,37 +14555,58 @@ openDrawer = (prev => function(){ const r = prev.apply(this, arguments);
 afterLogin = (prev => function(){ const r = prev.apply(this, arguments); unTries88 = 0; tourTries88 = 0; setTimeout(unTry88, 1800); return r; })(afterLogin);
 if (S.auth) setTimeout(unTry88, 2200);
 
-/* ---------- 4. listing fee: the first listing is free, then about $1 each ---------- */
-{ const st = (CONFIG.SELLER_TIERS || []).find(t => t.id === 'starter'); if (st && !(st.extra_usd >= 1)) st.extra_usd = 1; }
-const fee88 = () => kesOf(Math.max(1, tierOf('starter').extra_usd || 1));
-STATUS.unpaid = 'Waiting for the listing fee';
+/* ---------- 4. listing fee (v97): the first listing is free for 14 days; then a 14-day listing pass ($0.5)
+   lets a seller list as many items as they like. When the pass ends, their items hide until they renew. ---------- */
+CONFIG.LISTING_PASS_USD ??= 0.5; CONFIG.LISTING_PASS_DAYS ??= 14;
+{ const st = (CONFIG.SELLER_TIERS || []).find(t => t.id === 'starter'); if (st) st.extra_usd = CONFIG.LISTING_PASS_USD; }
+const PASS_MS97 = CONFIG.LISTING_PASS_DAYS * 864e5;
+const fee88 = () => Math.ceil(kesOf(CONFIG.LISTING_PASS_USD));
+STATUS.unpaid = 'Hidden · listing pass needed';
 const myLst88 = () => (S.listings || []).filter(l => l.by === me()).sort((a, b) => (a.ts || 0) - (b.ts || 0));
+function passEnd97(){ let end = 0;
+  (S.payReq83 || []).filter(x => x.plan?.kind === 'pass14' && x.status !== 'rejected' && x.payer === me()).sort((a, b) => a.ts - b.ts).forEach(x => { end = Math.max(x.ts, end) + PASS_MS97; });
+  return end; }
+function freeEnd97(){ const f = myLst88()[0]; return f ? (f.ts || Date.now()) + PASS_MS97 : 0; }
+const dShort97 = t => new Date(t).toLocaleDateString('en-KE', {day:'numeric', month:'short'});
 function feeNeeded88(l){
-  if (!l || isAdmin()) return false;
+  if (!l || isAdmin() || S.role86 || S.auth?.role) return false;
   if ((S.seller?.paidUntil || 0) > Date.now()) return false;                  // a paid seller plan covers it
-  const L = myLst88(); if (!L.length || L[0].id === l.id) return false;       // the first listing is free
-  return !(S.payReq83 || []).some(x => x.plan?.listingId === l.id && x.status !== 'rejected');
+  if (Date.now() < passEnd97()) return false;                                 // an active listing pass
+  const L = myLst88(); if (!L.length) return false;
+  if (L[0].id === l.id && Date.now() < freeEnd97()) return false;             // the first listing: free for 14 days
+  return !(S.payReq83 || []).some(x => x.plan?.listingId === l.id && x.plan?.kind === 'extra_listing' && x.status !== 'rejected' && Date.now() < x.ts + PASS_MS97);
+}
+/* where the seller stands: shown in the shop hub and on the listing form */
+function passCard97(){
+  if (isAdmin()) return '';
+  const pe = passEnd97(), fe = freeEnd97(), now = Date.now(), n = myLst88().length;
+  if (pe > now) return `<div class="pass97 ok">✅<div><b>Listing pass active until ${dShort97(pe)}</b><small>List as many items as you like until then.</small></div><button class="outline-btn" data-act="pass97">Add 14 days</button></div>`;
+  if (n === 1 && fe > now) return `<div class="pass97 ok">🎁<div><b>Your first listing is free until ${dShort97(fe)}</b><small>After that, or to list more items, a 14-day listing pass costs ${ksh(fee88())}.</small></div></div>`;
+  if (!n) return `<div class="pass97 ok">🎁<div><b>Your first listing is free for 14 days</b><small>Then ${ksh(fee88())} lists as many items as you like for 14 days.</small></div></div>`;
+  return `<div class="pass97">🏷️<div><b>Listing pass: ${ksh(fee88())} for 14 days</b><small>List as many items as you like. Your items stay hidden until you pay.</small></div><button class="cta" data-act="pass97">Pay ${ksh(fee88())}</button></div>`;
 }
 R.listform = (prev => () => {
   const h = prev(), f = P.sell || {};
-  if (f.id || !myLst88().length || isAdmin() || (S.seller?.paidUntil || 0) > Date.now()) return h;
-  const ban = `<div class="fee88-ban">🏷️<div><b>Your first listing was free</b><small>This item costs ${ksh(fee88())} (about 1 US dollar) to publish. You pay by M-Pesa when you tap Publish.</small></div></div>`;
-  return h.replace(/(<div class="form-body">|<div class="body">)/, m => m + ban);
+  if (isAdmin()) return h;
+  const need = !f.id && myLst88().length && !(Date.now() < passEnd97()) && !((S.seller?.paidUntil || 0) > Date.now());
+  const ban = need ? `<div class="fee88-ban">🏷️<div><b>Listing pass: ${ksh(fee88())} for 14 days</b><small>Your first listing was free. Pay ${ksh(fee88())} (about $0.50) by M-Pesa when you tap Publish, then list as many items as you like for 14 days.</small></div></div>`
+    : !f.id && Date.now() < passEnd97() ? `<div class="fee88-ban ok">✅<div><b>Listing pass active until ${dShort97(passEnd97())}</b><small>This item is included.</small></div></div>` : '';
+  return ban ? h.replace(/(<div class="form-body">|<div class="body">)/, m => m + ban) : h;
 })(R.listform);
 A.submitListing = (prev => (...a) => {
   const f = P.sell || {}, id = f.id, n0 = S.listings.length; prev(...a);
   if (cur() === 'listform') return;
   const l = id ? S.listings.find(x => x.id === id) : (S.listings.length > n0 ? S.listings[0] : null);
   if (!l || !['live', 'pending', 'unpaid', 'sold'].includes(l.status) || !feeNeeded88(l)) return;
-  l.status = 'unpaid'; l.reason = 'Your first listing was free. Pay the listing fee to publish this one'; save();
+  l.status = 'unpaid'; l.reason = `Pay ${ksh(fee88())} for a 14-day listing pass to show this item`; save();
   setTimeout(() => fee88Sheet(l.id), 350);
 })(A.submitListing);
 function fee88Sheet(id){
-  const l = S.listings.find(x => x.id === id); if (!l) return; P.fee88 = id; const amt = fee88();
-  openSheet(`<div class="pb83"><div class="pb83-h"><span class="pb83-mp">M-PESA</span><b>Publish this item</b></div>
-    <div class="pb83-what">Listing fee · ${esc(l.name)}</div>
+  P.fee88 = id || ''; const amt = fee88(), pe = passEnd97(), from = Math.max(Date.now(), pe), until = from + PASS_MS97;
+  openSheet(`<div class="pb83"><div class="pb83-h"><span class="pb83-mp">M-PESA</span><b>14-day listing pass</b></div>
+    <div class="pb83-what">List as many items as you like until ${dShort97(until)}</div>
     <div class="pb83-amt">${ksh(amt)}</div>
-    <p class="pay-note" style="margin:0 0 8px">Your first listing was free. Each extra item costs ${ksh(amt)} (about $1).</p>
+    <p class="pay-note" style="margin:0 0 8px">${pe > Date.now() ? `Your pass runs until ${dShort97(pe)}. This adds 14 more days.` : 'Your items show in the shop as soon as you pay. When the 14 days end, they hide until you renew.'}</p>
     <ol class="pb83-steps">
       <li>Open <b>M-Pesa</b> → <b>Lipa na M-Pesa</b> → <b>Pay Bill</b></li>
       <li><span>Business no.</span><b class="pb83-v">${esc(CONFIG.MPESA_PAYBILL)}</b>${copyBtn83(CONFIG.MPESA_PAYBILL, 'business number')}</li>
@@ -14578,45 +14615,53 @@ function fee88Sheet(id){
     </ol>
     <label class="pb83-lab" for="fee88c">M-Pesa confirmation code from the SMS</label>
     <input id="fee88c" class="field-input pb83-code" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. TKL4X9ABCD">
-    <button class="cta" data-act="fee88Pay">I’ve paid, publish my item</button>
+    <button class="cta" data-act="fee88Pay">I’ve paid, show my items</button>
     <button class="pb83-later" data-act="closeSheet">Later</button></div>`);
 }
 A.fee88 = el => fee88Sheet(el.dataset.id);
+A.pass97 = () => fee88Sheet('');
 A.fee88Pay = () => {
   const code = ($('#fee88c').value || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
   if (!/^[A-Z0-9]{10}$/.test(code) || !/[A-Z]/.test(code) || !/\d/.test(code)) return toast('Enter the 10-character code from your M-Pesa SMS, e.g. TKL4X9ABCD');
   if ((S.payReq83 || []).some(x => x.code === code)) return toast('You already used that code');
-  const l = S.listings.find(x => x.id === P.fee88); if (!l) return closeSheet();
-  (S.payReq83 ||= []).unshift({id:'f' + uid(), payer:me(), name:S.user.name || me(), email:S.auth?.email || '', phone:S.seller?.phone || '', code, amount:fee88(), usd:1,
-    what:`Listing fee: ${l.name}`, plan:{kind:'extra_listing', listingId:l.id}, status:'pending', ts:Date.now()});
-  const r = review87(l); l.status = r.status === 'live' && stock87(l) === 0 ? 'sold' : r.status; l.reason = r.reason; save(); closeSheet(); repaint();
+  const until = Math.max(Date.now(), passEnd97()) + PASS_MS97;
+  (S.payReq83 ||= []).unshift({id:'f' + uid(), payer:me(), name:S.user.name || me(), email:S.auth?.email || '', phone:S.seller?.phone || '', code, amount:fee88(), usd:CONFIG.LISTING_PASS_USD,
+    what:`14-day listing pass (until ${dShort97(until)})`, plan:{kind:'pass14', days:CONFIG.LISTING_PASS_DAYS, listingId:P.fee88 || undefined}, status:'pending', ts:Date.now()});
+  let shown = 0;
+  myLst88().filter(l => l.status === 'unpaid').forEach(l => { const r = review87(l); l.status = r.status === 'live' && stock87(l) === 0 ? 'sold' : r.status; l.reason = r.reason; if (l.status === 'live') shown++; });
+  save(); closeSheet(); repaint();
   try { shSync80(); } catch (e) {}
-  toast(l.status === 'live' ? '🎉 Thank you! Your item is live' : 'Thank you! Your item goes live once checked');
+  toast(`🎉 Thank you! Your listing pass runs until ${dShort97(until)}${shown ? `. ${shown} item${shown > 1 ? 's are' : ' is'} live again` : ''}`);
 };
 R.product = (prev => () => {
   let h = prev(); const p = prod(P.pid);
   if (!p || p.type !== 'listing' || p.by !== me() || p.status !== 'unpaid') return h;
-  return h.replace(/(<button class="cta gold ps87-btn")/, `<button class="cta fee88-btn" data-act="fee88" data-id="${p.id}">Pay ${ksh(fee88())} to publish</button>$1`);
+  return h.replace(/(<button class="cta gold ps87-btn")/, m => `<button class="cta fee88-btn" data-act="pass97">Pay ${ksh(fee88())} for a 14-day listing pass</button>` + m);
 })(R.product);
 R.sell = (prev => () => {
   const h = prev(); if (!S.seller) return h;
-  const L = (S.listings || []).filter(l => l.by === me() && l.status === 'unpaid');
-  const ban = L.map(l => `<div class="low87-ban">🏷️<div><b>Waiting for the listing fee</b><small>${esc(l.name)}</small></div><button class="outline-btn" data-act="fee88" data-id="${l.id}">Pay ${ksh(fee88())}</button></div>`).join('');
-  let out = h.replace(/Each extra item costs [^,<]*,/g, () => `Each extra item costs ${ksh(fee88())},`)
-    .replace(/(<div class="st-quota"><span>[^<]*<\/span><b>)Available/, (m, a) => myLst88().length && !isAdmin() ? a + 'Used' : m);
+  const hidden = (S.listings || []).filter(l => l.by === me() && l.status === 'unpaid').length;
+  const ban = passCard97() + (hidden ? `<div class="low87-ban">🙈<div><b>${hidden} item${hidden > 1 ? 's are' : ' is'} hidden from buyers</b><small>Pay for a listing pass to show ${hidden > 1 ? 'them' : 'it'} again.</small></div></div>` : '');
+  let out = h.replace(/Each extra item costs [^,<]*,/g, () => `Then ${ksh(fee88())} lists as many items as you like for 14 days,`)
+    .replace(/Your first listing is free\./g, 'Your first listing is free for 14 days.')
+    .replace(/(<div class="st-quota"><span>[^<]*<\/span><b>)Available/, (m, a) => myLst88().length && !isAdmin() ? a + (Date.now() < freeEnd97() ? 'Free until ' + dShort97(freeEnd97()) : 'Used') : m);
   return ban ? out.replace('<div class="body">', () => '<div class="body">' + ban) : out;
 })(R.sell);
+/* two days before a pass ends: a gentle reminder (once) */
+setTimeout(() => { try { const pe = passEnd97(); if (!pe || !S.seller) return; const left = pe - Date.now();
+  if (left > 0 && left < 2 * 864e5 && S.passWarn97 !== pe) { S.passWarn97 = pe; save();
+    notify('shop', `Your listing pass ends on ${dShort97(pe)}. Renew it so your items stay in the shop.`); toast(`Your listing pass ends on ${dShort97(pe)}`, {label:'Renew', fn:() => fee88Sheet('')}); } } catch (e) {} }, 7000);
 /* the server has the last word: tell the seller if it asks for the fee */
 shMerge80 = (prev => function(st, items){
   const before = {}; (S.listings || []).forEach(l => { if (l.by === me()) before[l.id] = l.status; });
   const r = prev(st, items);
   for (const it of items || []) { const d = it.data;
     if (it.col === 'listing' && d && d.by === me() && before[it.id] && before[it.id] !== 'unpaid' && d.status === 'unpaid')
-      toast(d.reason || 'Pay the listing fee to publish this item', {label:'Pay', fn:() => fee88Sheet(it.id)}); }
+      toast(d.reason || 'Pay for a listing pass to show this item', {label:'Pay', fn:() => fee88Sheet(it.id)}); }
   return r; })(shMerge80);
 
 /* v89: show the version in the menu, so it is easy to see the phone has the newest update */
-const NURU_VERSION = '94 · 28 Nov 2026';
+const NURU_VERSION = '98 · 28 Nov 2026';
 openDrawer = (prev => function(){ const r = prev.apply(this, arguments);
   const d = $('#drawer'); if (d && !$('.ver89', d)) (($('.d-items', d) || $('.drawer-inner', d) || d)).insertAdjacentHTML('beforeend', `<div class="ver89">Nuru version ${NURU_VERSION}</div>`);
   return r; })(openDrawer);
@@ -14636,7 +14681,7 @@ const TOUR89 = [
   {tap:'#navbar [data-go="notes"]', t:'Tap Notes', b:'Your own notes, prayers and thanksgiving.'},
   {t:'Notes ✍️', b:'Write notes, prayer requests and thanksgiving. They are saved to your account.'},
   {tap:'#navbar [data-go="shop"]', t:'Tap Shop', b:'Christian items from people near you.'},
-  {t:'The shop 🛍️', b:'Buy and sell Bibles, books, clothes and more. Your first listing is free.'},
+  {t:'The shop 🛍️', b:'Buy and sell Bibles, books, clothes and more. Your first listing is free for 14 days.'},
   {tap:'#navbar [data-go="community"]', t:'Tap Community', b:'Where believers share and pray together.'},
   {t:'Community 🕊️', b:'Read posts, follow people, join groups and find events near you.'},
   {tap:'.screen.active .fab', t:'Tap + to share', b:'Tap here to write a post, ask for prayer or share a testimony.'},
@@ -14795,6 +14840,107 @@ instTry85 = function(){
 A.inst85 = (prev => async function(){ if (!instWhich85() && !isPhone91()) { $('#inst85')?.remove(); return A.inst91(); } return prev.apply(this, arguments); })(A.inst85);
 A.instLater85 = () => { try { localStorage.setItem('nuru_inst85', 'later:' + (Date.now() + 864e5)); } catch (e) {} const c = $('#inst85'); if (c) { c.classList.remove('on'); setTimeout(() => c.remove(), 300); } };
 tourEnd88 = (prev => function(){ const r = prev.apply(this, arguments); instTries85 = 0; setTimeout(instTry85, 3000); return r; })(tourEnd88);
+/* ---------- v96: smarter menu order ----------
+   Home (and on laptops the app's main pages) first → Grow → Gather → Shop → Activity → settings & help
+   → Account (My profile, Profile settings, Switch or add profile — like TikTok) → Log out last. */
+drawerOrder92 = function(){
+  const list = $('#drawer .drawer-list'); if (!list) return;
+  const main = $('.d-main52', list);
+  const segs = [[]]; [...list.children].forEach(c => { if (c === main) return; if (c.classList.contains('d-sep')) segs.push([]); else segs[segs.length - 1].push(c); });
+  const label = s => s.find(c => c.classList.contains('d-group'))?.textContent.trim() || '';
+  const by = {}; let account = [], misc = [];
+  segs.forEach(s => { if (!s.length) return; const l = label(s);
+    if (l && l !== 'Account') by[l] = s;
+    else if (l === 'Account' || s.some(c => c.dataset.act === 'profiles' || c.dataset.dgo === 'uprofile')) account = account.concat(s);
+    else misc = misc.concat(s); });
+  /* account items can end up anywhere: collect them */
+  const isAcc = c => c.dataset.act === 'profiles' || ['uprofile', 'editprofile'].includes(c.dataset.dgo);
+  Object.values(by).forEach(s => s.filter(isAcc).forEach(c => account.push(c)));
+  misc.filter(isAcc).forEach(c => account.push(c)); misc = misc.filter(c => !isAcc(c));
+  Object.keys(by).forEach(k => by[k] = by[k].filter(c => !isAcc(c)));
+  const pick = sel => account.find(sel);
+  const accItems = [pick(c => c.dataset.dgo === 'uprofile'), pick(c => c.dataset.dgo === 'editprofile'), pick(c => c.dataset.act === 'profiles')].filter(Boolean);
+  const accHead = document.createElement('div'); accHead.className = 'd-group'; accHead.textContent = 'Account';
+  const logout = misc.find(c => c.dataset.act === 'logout'); misc = misc.filter(c => c !== logout);
+  let top = main ? [main] : null;
+  if (!main) { const h = document.createElement('button'); h.className = 'd-item d-home96' + (stack[0] === 'home' && stack.length === 1 ? ' on' : ''); h.dataset.dgo = 'home';
+    h.innerHTML = `<span class="di">${ic('home') || '🏠'}</span>Home`; top = [h]; }
+  if (main && by.Grow) by.Grow = by.Grow.filter(c => c.dataset.dgo !== 'gprayer');      // already in the main list on laptops
+  const known = ['Grow', 'Gather', 'Shop', 'Activity'];
+  const order = [top, by.Grow, by.Gather, by.Shop, by.Activity, ...Object.keys(by).filter(k => !known.includes(k)).map(k => by[k]), misc, accItems.length ? [accHead, ...accItems] : null, logout ? [logout] : null]
+    .filter(s => s && s.length && s.some(c => !c.classList.contains('d-group')));
+  list.innerHTML = '';
+  order.forEach((s, i) => { if (i) { const sep = document.createElement('div'); sep.className = 'd-sep'; list.appendChild(sep); } s.forEach(c => list.appendChild(c)); });
+};
+/* ---------- v98: the whole Bible (KJV) saved on the phone, so it can be read without internet ----------
+   The King James Version is public domain. Nuru keeps one copy (about 1.2 MB to download) in the phone's storage.
+   It downloads by itself in the background, once, when there is internet. Other translations still need internet;
+   offline, Nuru shows the KJV instead and says so. */
+const KJV_URL98 = '/bible/kjv.json', BCACHE98 = 'nuru-bible';
+let kjv98 = null, kjvBusy98 = null;
+async function kjvLocal98(){
+  if (kjv98) return kjv98;
+  try { if (!('caches' in window)) return null; const c = await caches.open(BCACHE98), r = await c.match(KJV_URL98); if (!r) return null; kjv98 = await r.json(); return kjv98; } catch (e) { return null; }
+}
+function kjvDownload98(){
+  if (kjvBusy98) return kjvBusy98;
+  kjvBusy98 = (async () => {
+    if (!('caches' in window)) throw new Error('no cache');
+    const r = await fetch(KJV_URL98, {cache:'no-store'}); if (!r.ok) throw new Error('HTTP ' + r.status);
+    const c = await caches.open(BCACHE98); await c.put(KJV_URL98, r.clone());
+    kjv98 = await r.json(); S.kjv98 = Date.now(); save(); return kjv98;
+  })().finally(() => { kjvBusy98 = null; });
+  return kjvBusy98;
+}
+const kjvCh98 = (book, ch) => { const b = kjv98 && kjv98.b.find(x => x[0] === book), c = b && b[1][ch - 1]; return c ? c.map((t, i) => [i + 1, t]) : null; };
+getChapter = (prev => async function(book, ch, tr){
+  if (tr === 'kjv' && await kjvLocal98()) { const v = kjvCh98(book, ch); if (v) return {verses:v}; }
+  try { return await prev.apply(this, arguments); }
+  catch (e) { if (await kjvLocal98()) { const v = kjvCh98(book, ch); if (v) return {verses:v, offline:true}; } throw e; }
+})(getChapter);
+async function kjvAuto98(){
+  if (!navigator.onLine || (navigator.connection && navigator.connection.saveData)) return;
+  if (await kjvLocal98()) { if (!S.kjv98) { S.kjv98 = Date.now(); save(); } return; }
+  try { await kjvDownload98(); if (!S.kjvTold98) { S.kjvTold98 = 1; save(); toast('📖 The whole Bible (KJV) is now saved on this device. You can read it without internet.'); } } catch (e) {}
+}
+setTimeout(kjvAuto98, 12000);
+addEventListener('online', () => setTimeout(kjvAuto98, 3000));
+/* in the translations list: show that the KJV works offline */
+trListHTML54 = (prev => function(){ const h = prev.apply(this, arguments);
+  return S.kjv98 ? h.replace(/(King James Version)(?![^<]*offline)/, '$1 <small class="kjv98">· ✓ saved for offline</small>') : h; })(trListHTML54);
+/* keep the downloaded Bible when the app updates itself */
+updateNow92 = async function(){
+  toast('Updating Nuru…');
+  try { const reg = await navigator.serviceWorker?.getRegistration(); await reg?.update(); } catch (e) {}
+  try { for (const k of await caches.keys()) if (k !== BCACHE98) await caches.delete(k); } catch (e) {}
+  try { save(); } catch (e) {}
+  location.reload();
+};
+
+/* offline with another translation chosen: say plainly what is shown */
+loadChapter = (prev => async function(){ const r = await prev.apply(this, arguments);
+  const tr = S.reader.tr, note = $('#reader .reader-note');
+  if (note && tr !== 'kjv' && /saved KJV copy/.test(note.textContent) && kjv98) note.textContent = `You are offline, so this is the King James Version saved on your device. Connect to the internet to read the ${(trInfo(tr) && trInfo(tr)[0] === tr && trInfo(tr)[1]) || String(tr).toUpperCase()}.`;
+  return r; })(loadChapter);
+/* ---------- v98: each tab remembers where you were ----------
+   Browse the shop, open an item, go read the Bible, then tap Shop again: you are back on the same item,
+   and Back takes you to the same place in the shop list. Tapping the tab you are already on goes to its top. */
+const TABS98 = {}; let navTap98 = false;
+document.addEventListener('click', e => { if (e.target.closest && e.target.closest('#navbar [data-go], .d-nav52[data-go]')) { navTap98 = true; setTimeout(() => { navTap98 = false; }, 0); } }, true);
+go = (prev => function(name, params){
+  const from = stack[0];
+  if (MAIN.includes(name) && name !== from && MAIN.includes(from)) {
+    TABS98[from] = {stack:stack.slice(), mem:MEM88.map(x => x && {...x, p:{...x.p}}), p:{...P}, y:scroller88(cur())?.scrollTop || 0};
+    const t = TABS98[name];
+    if (navTap98 && t && !params) {
+      const r = prev.apply(this, arguments);
+      stack = t.stack.slice(); MEM88.length = 0; t.mem.forEach((x, i) => { MEM88[i] = x; }); Object.assign(P, t.p);
+      show(true); restoreY88(t.y);
+      return r;
+    }
+  }
+  return prev.apply(this, arguments);
+})(go);
 /* ---------- boot ---------- */
 
 applyLook();
