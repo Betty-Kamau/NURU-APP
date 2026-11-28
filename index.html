@@ -2998,6 +2998,19 @@ html.minor67 [data-act="selPost"],html.minor67 [data-act="viPost"],html.minor67 
 @keyframes t89up{50%{transform:translateY(-8px)}}@keyframes t89down{50%{transform:translateY(8px)}}
 .t89-bub{padding-right:44px}
 .t89-x{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:50%;border:0;background:var(--card-2,#eee);color:var(--ink);font-size:15px;font-weight:800;cursor:pointer}
+/* v91 install */
+.inst91-card{display:flex;align-items:center;gap:12px;width:calc(100% - 32px);margin:6px 16px 0;padding:12px;border-radius:16px;border:1.5px solid var(--gold,#E0A23D);background:var(--gold-soft,#FFF4DC);color:var(--ink);text-align:left;cursor:pointer}
+.dark-mode .inst91-card{background:#2D2414}
+.inst91-card img{width:40px;height:40px;border-radius:10px}
+.inst91-card>span:nth-child(2){flex:1;display:flex;flex-direction:column;font-size:14px}.inst91-card small{font-size:12px;color:var(--muted)}
+.inst91-go{background:var(--violet-deep);color:#fff;font-weight:800;font-size:13px;padding:8px 14px;border-radius:999px}
+.dark-mode .inst91-go{background:var(--gold);color:#12004E}
+.inst91{display:flex;flex-direction:column;gap:10px}
+.inst91-sub{margin:0;text-align:center;font-size:13.5px;color:var(--muted)}
+.inst91-qr{align-self:center;width:200px;height:200px;padding:10px;background:#fff;border-radius:16px;border:1px solid var(--line)}
+.inst91-qr svg{width:100%;height:100%;display:block}
+.inst91-cap{margin:0;text-align:center;font-size:13px;line-height:1.45}
+.inst91-close{margin-top:2px}
 </style>
 </head>
 <body><div id="boot64" aria-hidden="true"><div class="b64-name">Nuru</div><div class="b64-ring"></div></div><script data-boot>setTimeout(function(){var b=document.getElementById("boot64");if(b)b.remove()},12000)</script>
@@ -14586,7 +14599,7 @@ shMerge80 = (prev => function(st, items){
   return r; })(shMerge80);
 
 /* v89: show the version in the menu, so it is easy to see the phone has the newest update */
-const NURU_VERSION = '90 · 28 Nov 2026';
+const NURU_VERSION = '91 · 28 Nov 2026';
 openDrawer = (prev => function(){ const r = prev.apply(this, arguments);
   const d = $('#drawer'); if (d && !$('.ver89', d)) (($('.d-items', d) || $('.drawer-inner', d) || d)).insertAdjacentHTML('beforeend', `<div class="ver89">Nuru version ${NURU_VERSION}</div>`);
   return r; })(openDrawer);
@@ -14653,6 +14666,38 @@ document.addEventListener('click', e => {
   const s = TOUR89[P.tour89 || 0]; if (!$('#tour88') || !s?.tap) return;
   if (e.target.closest && e.target.closest(s.tap)) { P.tour89++; setTimeout(() => { if ($('#tour88')) tourPaint88(); }, 450); }
 }, true);
+/* ---------- v91: "Install the Nuru app" is always in the menu, with a QR code ----------
+   For anyone using Nuru in a browser (also if they closed the install card). On a phone: Install puts Nuru on the home
+   screen. On a laptop: scan the QR code with a phone to open Nuru there and install it. */
+const instUrl91 = () => location.origin + '/?install=1';
+const isPhone91 = () => isAndroid85() || isIOS85();
+function instInstalled91(){ try { return localStorage.getItem('nuru_inst85') === 'installed'; } catch (e) { return false; } }
+A.inst91 = () => {
+  if ($('#drawer.show')) closeDrawer();
+  const w = instWhich85(), phone = isPhone91();
+  let qr = ''; try { qr = qrMake(instUrl91()).createSvgTag({cellSize:5, margin:2, scalable:true}); } catch (e) {}
+  const here = w ? `<button class="cta" data-act="inst91Here">${phone ? 'Install on this phone' : 'Install on this computer'}</button>` : '';
+  openSheet(`<div class="pay-sheet inst91"><img src="/icon-192.png" alt="" class="inst85-big"><div class="cpw-title" style="text-align:center">Get the Nuru app</div>
+    <p class="inst91-sub">Free. It opens from your home screen like any app, and works even with weak internet.</p>
+    ${phone ? here : ''}
+    <div class="inst91-qr">${qr}</div>
+    <p class="inst91-cap">${phone ? 'Installing on another phone? Scan this code with its camera.' : '<b>Scan this code with your phone’s camera</b> to open Nuru on your phone, then tap Install.'}</p>
+    ${phone ? '' : here || '<p class="pay-note" style="text-align:center">To install on this computer, use Chrome or Edge and click the install icon at the right of the address bar.</p>'}
+    <button class="outline-btn inst91-close" data-act="closeSheet">Close</button></div>`);
+};
+A.inst91Here = () => { closeSheet(); setTimeout(() => A.inst85(), 250); };
+openDrawer = (prev => function(){ const r = prev.apply(this, arguments);
+  const d = $('#drawer');
+  if (d && !$('.inst91-card', d) && !inApp85() && !instInstalled91()) {
+    const html = `<button class="inst91-card" data-act="inst91"><img src="/icon-192.png" alt=""><span><b>Install the Nuru app</b><small>${isPhone91() ? 'Add it to your home screen' : 'Scan a QR code to get it on your phone'}</small></span><span class="inst91-go">Install</span></button>`;
+    const v = $('.ver89', d); v ? v.insertAdjacentHTML('beforebegin', html) : ($('.d-items', d) || d).insertAdjacentHTML('beforeend', html);
+  }
+  return r; })(openDrawer);
+/* opened from the QR code: offer the install straight away */
+if (/[?&]install=1/.test(location.search) && !inApp85()) {
+  try { history.replaceState(history.state, '', location.pathname); } catch (e) {}
+  setTimeout(() => { if (!instInstalled91()) A.inst91(); }, 2500);
+}
 /* ---------- boot ---------- */
 
 applyLook();
